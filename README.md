@@ -1,4 +1,4 @@
-dd-trello
+trellodog
 =========
 
 Trello -> Datadog graphing tool
