@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+
+import pprint
+import os
+import sys
+
+from clint.textui import puts, colored
+from clint.textui import columns
+
+sys.path.append("../Trellodog")
+
+
+VERSION = "0.1"
+usage = """%prog [options] [command]
+Commands:
+    list|ls                       List stats available
+    num_cards <board id>          Show number of cards for <board id>
+"""
+
+def list():
+    print """
+    num_cards                     # of cards on the board.
+"""
+
+def num_cards(board_id):
+
+    dawg = Trellodog()
+    dawg.trello(os.environ['TRELLO_APP_KEY'], os.environ['TRELLO_API_TOKEN'])
+
+    num_cards = str(dawg.num_cards(board_id))
+
+    puts(columns(
+        [(colored.green(board_id)), 18],
+        [(colored.green(num_cards)), 4],
+    ))
+
+
+
+if __name__ == "__main__":
+    try:
+        import readline
+    except ImportError:
+        pass
+    # import Trellodog
+    import sys
+    from trellodog import Trellodog
+    from optparse import OptionParser
+    parser = OptionParser(version=VERSION, usage=usage)
+    parser.add_option("-z", "--zone",
+                      help="Operate on zone",
+                      action="append", default=[], dest="zones")
+    parser.add_option("-l", "--listener",
+                      help="Specify Listener in,out,proto",
+                      action="append", default=[], dest="listeners")
+    parser.add_option("-r", "--region",
+                      help="Region to connect to",
+                      action="store", dest="region")
+
+    (options, args) = parser.parse_args()
+
+    if len(args) < 1:
+        parser.print_help()
+        sys.exit(1)
+
+    command = args[0].lower()
+    if command in ("ls", "list"):
+        list()
+    elif command == "num_cards":
+        num_cards(args[1])
+
