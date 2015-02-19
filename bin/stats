@@ -50,10 +50,6 @@ def activity(board_id):
     card_activity = {}
 
     for activity in activities:
-        # print "*************"
-        # pp.pprint(activity)
-        # print "*************"
-
         card_id = activity['data']['card']['id']
 
         if not card_activity.has_key(card_id):
@@ -67,16 +63,9 @@ def activity(board_id):
         if processed_activity is not None:
             card_activity[card_id]['actions'].append(processed_activity)
 
-        # print "*************"
-        # pp.pprint(activity['idMemberCreator'])
-        # print "*************"
-        # pp.pprint(activity['type'])
-        # print "*************"
-
     pp.pprint(card_activity)
 
 def proc_activity(activity):
-    print "*****************************"
 
     retval = None
 
@@ -100,16 +89,26 @@ def proc_activity(activity):
                 "user": activity['memberCreator']['fullName']
             }
 
-        # pp = pprint.PrettyPrinter(indent=2)
-        # pp.pprint(activity)
 
     if activity['type'] == 'commentCard':
-        if activity['data'].has_key('text'):
+
+        # Grab comments on cards
+        if data.has_key('text'):
             retval = {
                   "date": activity['date'],
                   "text": activity['data']['text'],
                   "user": activity['memberCreator']['fullName']
                 }
+
+    if activity['type'] == 'updateCheckItemStateOnCard':
+
+        if data.has_key('checkItem'):
+            checkItem = data['checkItem']
+            retval = {
+                "date": activity['date'],
+                "text": "%s is now %s" % (checkItem['name'], checkItem['state']),
+                "user": activity['memberCreator']['fullName']
+            }
 
     return retval
 
