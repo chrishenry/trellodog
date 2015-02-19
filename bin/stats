@@ -3,6 +3,7 @@
 import pprint
 import os
 import sys
+import pystache
 
 from clint.textui import puts, colored
 from clint.textui import columns
@@ -54,7 +55,7 @@ def activity(board_id):
 
         if not card_activity.has_key(card_id):
             card_activity[card_id] = {
-                'data': activity['data']['card'],
+                'card': activity['data']['card'],
                 'actions': [],
             }
 
@@ -63,7 +64,20 @@ def activity(board_id):
         if processed_activity is not None:
             card_activity[card_id]['actions'].append(processed_activity)
 
-    pp.pprint(card_activity)
+    data_template = """
+Title: {{ card.name }}
+{{ #card.desc }}Description: {{ card.desc }}{{ /card.desc }}
+************************
+{{#actions}}
+* {{ date }}: {{ text }} [{{ user }}]
+{{/actions}}
+"""
+
+    for card, stuff in card_activity.iteritems():
+        print ""
+        print pystache.render(data_template, stuff)
+
+    # pp.pprint(card_activity)
 
 def proc_activity(activity):
 
