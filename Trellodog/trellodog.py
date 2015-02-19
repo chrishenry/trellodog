@@ -1,6 +1,8 @@
 
 
 from trello import *
+from datetime import datetime, timedelta
+
 
 class Trellodog(object):
     """Trellodog is a tool for sending trello stats to datadog"""
@@ -28,9 +30,18 @@ class Trellodog(object):
 
         return len(cards)
 
+    def activity(self, board_id, days=3, filters='all'):
+        """Return activity for board_id"""
 
+        since = date_N_days_ago = datetime.now() - timedelta(days=days)
 
+        try:
+            activity = self._trello.boards.get_action(board_id, filter=filters, since=since, limit=1000)
+        except Exception, e:
+            print e.message
+            exit()
 
+        return activity
 
 
 # trello = TrelloApi(TRELLO_APP_KEY, TRELLO_API_TOKEN)

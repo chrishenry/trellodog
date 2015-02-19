@@ -15,6 +15,7 @@ usage = """%prog [options] [command]
 Commands:
     list|ls                       List stats available
     num_cards <board id>          Show number of cards for <board id>
+    activity <board id>           Show activity from a given board.
 """
 
 def list():
@@ -34,7 +35,83 @@ def num_cards(board_id):
         [(colored.green(num_cards)), 4],
     ))
 
+def activity(board_id):
 
+    pp = pprint.PrettyPrinter(indent=2)
+
+    dawg = Trellodog()
+    dawg.trello(os.environ['TRELLO_APP_KEY'], os.environ['TRELLO_API_TOKEN'])
+
+    activity_filters = ['updateCard','commentCard','addChecklistToCard','updateCheckItemStateOnCard']
+    activities = dawg.activity(board_id, filters=activity_filters)
+
+    print len(activities)
+
+    card_activity = {}
+
+    for activity in activities:
+        # print "*************"
+        # pp.pprint(activity)
+        # print "*************"
+
+        card_id = activity['data']['card']['id']
+
+        if not card_activity.has_key(card_id):
+            card_activity[card_id] = {
+                'data': activity['data']['card'],
+                'actions': [],
+            }
+
+        processed_activity = proc_activity(activity)
+
+        if processed_activity is not None:
+            card_activity[card_id]['actions'].append(processed_activity)
+
+        # print "*************"
+        # pp.pprint(activity['idMemberCreator'])
+        # print "*************"
+        # pp.pprint(activity['type'])
+        # print "*************"
+
+    pp.pprint(card_activity)
+
+def proc_activity(activity):
+    print "*****************************"
+
+    retval = None
+
+    #shortcut that shit.
+    data = activity['data']
+
+    if activity['type'] == 'updateCard':
+
+        # This is just a re-prioritization
+        if data.has_key('old') and data['old'].has_key('pos'):
+            pass
+
+        # Moving of a card
+        if data.has_key('listBefore') and data.has_key('listAfter'):
+            listBefore = data['listBefore']['name']
+            listAfter = data['listAfter']['name']
+
+            retval = {
+                "date": activity['date'],
+                "text": "Move task to status: %s" % listAfter,
+                "user": activity['memberCreator']['fullName']
+            }
+
+        # pp = pprint.PrettyPrinter(indent=2)
+        # pp.pprint(activity)
+
+    if activity['type'] == 'commentCard':
+        if activity['data'].has_key('text'):
+            retval = {
+                  "date": activity['date'],
+                  "text": activity['data']['text'],
+                  "user": activity['memberCreator']['fullName']
+                }
+
+    return retval
 
 if __name__ == "__main__":
     try:
@@ -67,4 +144,6 @@ if __name__ == "__main__":
         list()
     elif command == "num_cards":
         num_cards(args[1])
+    elif command == "activity":
+        activity(args[1])
 
