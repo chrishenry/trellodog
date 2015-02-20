@@ -2,7 +2,13 @@
 
 from trello import *
 from datetime import datetime, timedelta
+import requests
+import json
 
+def get_action(self, board_id, filter=None, fields=None, limit=None, page=None, idModels=None, since=None):
+    resp = requests.get("https://trello.com/1/boards/%s/actions" % (board_id), params=dict(key=self._apikey, token=self._token, filter=filter, fields=fields, limit=limit, page=page, idModels=idModels, since=since), data=None)
+    resp.raise_for_status()
+    return json.loads(resp.content)
 
 class Trellodog(object):
     """Trellodog is a tool for sending trello stats to datadog"""
@@ -53,10 +59,13 @@ class Trellodog(object):
     def activity(self, board_id, days=3, filters='all'):
         """Return activity for board_id"""
 
+        # Monkey patch
+        self._trello.boards.get_action = get_action
+
         since = date_N_days_ago = datetime.now() - timedelta(days=days)
 
         try:
-            activity = self._trello.boards.get_action(board_id, filter=filters, since=since, limit=1000)
+            activity = self._trello.boards.get_action(self._trello.boards, board_id, filter=filters, since=since, limit=1000)
         except Exception, e:
             print e.message
             exit()
