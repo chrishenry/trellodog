@@ -43,7 +43,7 @@ def activity(board_id):
 
     data_template = \
 """
-### Task: {{ card.name }} ({{ list }})
+### Task: [{{ card.name }}]({{ url }}) ({{ list }})
 
 {{ #card.desc }}**Description**: {{ card.desc }}{{ /card.desc }}
 
