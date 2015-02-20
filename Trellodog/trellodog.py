@@ -19,6 +19,26 @@ class Trellodog(object):
     def list_boards(self):
         pass
 
+    def get_card(self, card_id):
+
+        try:
+            card = self._trello.cards.get(card_id)
+        except Exception, e:
+            print e.message
+            exit()
+
+        return card
+
+    def get_list(self, list_id):
+
+        try:
+            tlist = self._trello.lists.get(list_id)
+        except Exception, e:
+            print e.message
+            exit()
+
+        return tlist
+
     def num_cards(self, board_id):
         """Return the number of cards for board_id"""
 

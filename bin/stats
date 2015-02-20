@@ -3,6 +3,7 @@
 import pprint
 import os
 import sys
+import operator
 import pystache
 
 from clint.textui import puts, colored
@@ -40,15 +41,28 @@ def activity(board_id):
 
     pp = pprint.PrettyPrinter(indent=2)
 
+    data_template = \
+"""
+### Task: {{ card.name }} ({{ list }})
+
+{{ #card.desc }}**Description**: {{ card.desc }}{{ /card.desc }}
+
+
+{{#actions}}
+- {{ date }}: {{ text }} [{{ user }}]
+{{/actions}}
+
+
+"""
+
     dawg = Trellodog()
     dawg.trello(os.environ['TRELLO_APP_KEY'], os.environ['TRELLO_API_TOKEN'])
 
     activity_filters = ['updateCard','commentCard','addChecklistToCard','updateCheckItemStateOnCard']
     activities = dawg.activity(board_id, filters=activity_filters)
 
-    print len(activities)
-
     card_activity = {}
+    bucketed_cards = {}
 
     for activity in activities:
         card_id = activity['data']['card']['id']
@@ -60,31 +74,38 @@ def activity(board_id):
             }
 
         processed_activity = proc_activity(activity)
-
         if processed_activity is not None:
             card_activity[card_id]['actions'].append(processed_activity)
 
-    data_template = """
-Title: {{ card.name }}
-{{ #card.desc }}Description: {{ card.desc }}{{ /card.desc }}
-************************
-{{#actions}}
-* {{ date }}: {{ text }} [{{ user }}]
-{{/actions}}
-"""
+
+    # Get the URL and List name for the card
+    for card, stuff in card_activity.iteritems():
+        card_resp = dawg.get_card(card)
+        card_activity[card]['url'] = card_resp['url']
+
+        list_resp = dawg.get_list(card_resp['idList'])
+        card_activity[card]['list'] = list_resp['name']
+
+    # # Bucket the cards by list
+    # for card, stuff in card_activity.iteritems():
+
+    #     if not bucketed_cards.has_key(stuff['list']):
+    #         bucketed_cards[stuff['list']] = {}
+
+    #     bucketed_cards[stuff['list']].append()
 
     for card, stuff in card_activity.iteritems():
-        print ""
-        print pystache.render(data_template, stuff)
+        if len(stuff['actions']) > 0:
+            print pystache.render(data_template, stuff)
 
     # pp.pprint(card_activity)
 
 def proc_activity(activity):
 
-    retval = None
-
     #shortcut that shit.
     data = activity['data']
+
+    retval = None
 
     if activity['type'] == 'updateCard':
 
@@ -99,7 +120,7 @@ def proc_activity(activity):
 
             retval = {
                 "date": activity['date'],
-                "text": "Move task to status: %s" % listAfter,
+                "text": "Move task to status: **%s**" % listAfter,
                 "user": activity['memberCreator']['fullName']
             }
 
@@ -120,7 +141,7 @@ def proc_activity(activity):
             checkItem = data['checkItem']
             retval = {
                 "date": activity['date'],
-                "text": "%s is now %s" % (checkItem['name'], checkItem['state']),
+                "text": "%s is now **%s**" % (checkItem['name'], checkItem['state']),
                 "user": activity['memberCreator']['fullName']
             }
 
