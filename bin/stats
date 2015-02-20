@@ -162,16 +162,6 @@ if __name__ == "__main__":
     from trellodog import Trellodog
     from optparse import OptionParser
     parser = OptionParser(version=VERSION, usage=usage)
-    parser.add_option("-z", "--zone",
-                      help="Operate on zone",
-                      action="append", default=[], dest="zones")
-    parser.add_option("-l", "--listener",
-                      help="Specify Listener in,out,proto",
-                      action="append", default=[], dest="listeners")
-    parser.add_option("-r", "--region",
-                      help="Region to connect to",
-                      action="store", dest="region")
-
     (options, args) = parser.parse_args()
 
     if len(args) < 1:
