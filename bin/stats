@@ -5,6 +5,7 @@ import os
 import sys
 import operator
 import pystache
+import datetime
 
 from clint.textui import puts, colored
 from clint.textui import columns
@@ -119,7 +120,7 @@ def proc_activity(activity):
             listAfter = data['listAfter']['name']
 
             retval = {
-                "date": activity['date'],
+                "date": date_formatter(activity['date']),
                 "text": "Move task to status: **%s**" % listAfter,
                 "user": activity['memberCreator']['fullName']
             }
@@ -130,7 +131,7 @@ def proc_activity(activity):
         # Grab comments on cards
         if data.has_key('text'):
             retval = {
-                  "date": activity['date'],
+                  "date": date_formatter(activity['date']),
                   "text": activity['data']['text'],
                   "user": activity['memberCreator']['fullName']
                 }
@@ -140,12 +141,16 @@ def proc_activity(activity):
         if data.has_key('checkItem'):
             checkItem = data['checkItem']
             retval = {
-                "date": activity['date'],
+                "date": date_formatter(activity['date']),
                 "text": "%s is now **%s**" % (checkItem['name'], checkItem['state']),
                 "user": activity['memberCreator']['fullName']
             }
 
     return retval
+
+def date_formatter(date):
+    my_date = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+    return my_date.strftime("%b %d, %I:%M%p").lstrip("0").replace(" 0", " ")
 
 if __name__ == "__main__":
     try:
