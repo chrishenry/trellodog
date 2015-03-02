@@ -1,0 +1,5 @@
+trello==0.9.1
+dogapi==1.8.5
+click==3.3
+clint==0.4.1
+pystache==0.5.4

@@ -1,0 +1,177 @@
+#!/usr/bin/env python
+
+import pprint
+import os
+import sys
+import pystache
+import datetime
+
+from clint.textui import puts, colored
+from clint.textui import columns
+
+sys.path.append("../Trellodog")
+
+
+VERSION = "0.1"
+usage = """%prog [options] [command]
+Commands:
+    list|ls                       List stats available
+    num_cards <board id>          Show number of cards for <board id>
+    activity <board id>           Show activity from a given board.
+"""
+
+def list():
+    print """
+    num_cards                     # of cards on the board.
+"""
+
+def num_cards(board_id):
+
+    dawg = Trellodog()
+    dawg.trello(os.environ['TRELLO_APP_KEY'], os.environ['TRELLO_API_TOKEN'])
+
+    num_cards = str(dawg.num_cards(board_id))
+
+    puts(columns(
+        [(colored.green(board_id)), 18],
+        [(colored.green(num_cards)), 4],
+    ))
+
+def activity(board_id):
+
+    pp = pprint.PrettyPrinter(indent=2)
+
+    data_template = \
+"""
+### Task: [{{ card.name }}]({{ url }}) ({{ list }})
+
+{{ #card.desc }}**Description**: {{ card.desc }}{{ /card.desc }}
+
+
+{{#actions}}
+- {{ date }}: {{ text }} [{{ user }}]
+{{/actions}}
+
+
+"""
+
+    dawg = Trellodog()
+    dawg.trello(os.environ['TRELLO_APP_KEY'], os.environ['TRELLO_API_TOKEN'])
+
+    activity_filters = ['updateCard','commentCard','addChecklistToCard','updateCheckItemStateOnCard']
+    activities = dawg.activity(board_id, filters=activity_filters)
+
+    card_activity = {}
+    bucketed_cards = {}
+
+    for activity in activities:
+        card_id = activity['data']['card']['id']
+
+        if not card_activity.has_key(card_id):
+            card_activity[card_id] = {
+                'card': activity['data']['card'],
+                'actions': [],
+            }
+
+        processed_activity = proc_activity(activity)
+        if processed_activity is not None:
+            card_activity[card_id]['actions'].append(processed_activity)
+
+
+    # Get the URL and List name for the card
+    for card, stuff in card_activity.iteritems():
+        card_resp = dawg.get_card(card)
+        card_activity[card]['url'] = card_resp['url']
+
+        list_resp = dawg.get_list(card_resp['idList'])
+        card_activity[card]['list'] = list_resp['name']
+
+    # # Bucket the cards by list
+    # for card, stuff in card_activity.iteritems():
+
+    #     if not bucketed_cards.has_key(stuff['list']):
+    #         bucketed_cards[stuff['list']] = {}
+
+    #     bucketed_cards[stuff['list']].append()
+
+    for card, stuff in card_activity.iteritems():
+        if len(stuff['actions']) > 0:
+            print pystache.render(data_template, stuff)
+
+    # pp.pprint(card_activity)
+
+def proc_activity(activity):
+
+    #shortcut that shit.
+    data = activity['data']
+
+    retval = None
+
+    if activity['type'] == 'updateCard':
+
+        # This is just a re-prioritization
+        if data.has_key('old') and data['old'].has_key('pos'):
+            pass
+
+        # Moving of a card
+        if data.has_key('listBefore') and data.has_key('listAfter'):
+            listBefore = data['listBefore']['name']
+            listAfter = data['listAfter']['name']
+
+            retval = {
+                "date": date_formatter(activity['date']),
+                "text": "Move task to status: **%s**" % listAfter,
+                "user": activity['memberCreator']['fullName']
+            }
+
+
+    if activity['type'] == 'commentCard':
+
+        # Grab comments on cards
+        if data.has_key('text'):
+            retval = {
+                  "date": date_formatter(activity['date']),
+                  "text": activity['data']['text'],
+                  "user": activity['memberCreator']['fullName']
+                }
+
+    if activity['type'] == 'updateCheckItemStateOnCard':
+
+        if data.has_key('checkItem'):
+            checkItem = data['checkItem']
+            retval = {
+                "date": date_formatter(activity['date']),
+                "text": "%s is now **%s**" % (checkItem['name'], checkItem['state']),
+                "user": activity['memberCreator']['fullName']
+            }
+
+    return retval
+
+def date_formatter(date):
+    my_date = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+    return my_date.strftime("%b %d, %I:%M%p").lstrip("0").replace(" 0", " ")
+
+if __name__ == "__main__":
+    try:
+        import readline
+    except ImportError:
+        pass
+    # import Trellodog
+    import sys
+    from trellodog import Trellodog
+    from optparse import OptionParser
+    parser = OptionParser(version=VERSION, usage=usage)
+    (options, args) = parser.parse_args()
+
+    if len(args) < 1:
+        parser.print_help()
+        sys.exit(1)
+
+    command = args[0].lower()
+    if command in ("ls", "list"):
+        list()
+    elif command == "num_cards":
+        num_cards(args[1])
+    elif command == "activity":
+        activity(args[1])
+
