@@ -18,7 +18,7 @@ Activity
 Can be called, from the `bin` directory, like;
 
 ```bash
-./stats <board id>
+./stats activity <board id>
 
 # to copy output to clipboard (mac only)
 ./stats <board id> | pbcopy
