@@ -9,8 +9,8 @@ import datetime
 from clint.textui import puts, colored
 from clint.textui import columns
 
-sys.path.append("../Trellodog")
-
+dir = os.path.dirname(__file__)
+sys.path.append(os.path.join(dir,"../Trellodog"))
 
 VERSION = "0.1"
 usage = """%prog [options] [command]
