@@ -163,7 +163,7 @@ if __name__ == "__main__":
     parser = OptionParser(version=VERSION, usage=usage)
     parser.add_option(
             "-d", "--days", action="store", type="int",
-            default=2, dest="days", help="number of days of activity to return"
+            default=Trellodog.default_days, dest="days", help="number of days of activity to return"
             )
     (options, args) = parser.parse_args()
 

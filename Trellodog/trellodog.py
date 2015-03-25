@@ -12,6 +12,7 @@ def get_action(self, board_id, filter=None, fields=None, limit=None, page=None, 
 
 class Trellodog(object):
     """Trellodog is a tool for sending trello stats to datadog"""
+    default_days = 2
 
     def __init__(self):
         pass
@@ -56,7 +57,7 @@ class Trellodog(object):
 
         return len(cards)
 
-    def activity(self, board_id, days=2, filters='all'):
+    def activity(self, board_id, days=default_days, filters='all'):
         """Return activity for board_id"""
 
         # Monkey patch
