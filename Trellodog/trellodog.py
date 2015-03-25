@@ -56,7 +56,7 @@ class Trellodog(object):
 
         return len(cards)
 
-    def activity(self, board_id, days=3, filters='all'):
+    def activity(self, board_id, days=2, filters='all'):
         """Return activity for board_id"""
 
         # Monkey patch

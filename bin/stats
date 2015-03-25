@@ -12,7 +12,7 @@ from clint.textui import columns
 dir = os.path.dirname(__file__)
 sys.path.append(os.path.join(dir,"../Trellodog"))
 
-VERSION = "0.1"
+VERSION = "0.2.0"
 usage = """%prog [options] [command]
 Commands:
     list|ls                       List stats available
@@ -161,7 +161,10 @@ if __name__ == "__main__":
     from trellodog import Trellodog
     from optparse import OptionParser
     parser = OptionParser(version=VERSION, usage=usage)
-    parser.add_option("-d", "--days", action="store", type="int", dest="days", help="number of days of activity to return")
+    parser.add_option(
+            "-d", "--days", action="store", type="int",
+            default=2, dest="days", help="number of days of activity to return"
+            )
     (options, args) = parser.parse_args()
 
     if len(args) < 1:
