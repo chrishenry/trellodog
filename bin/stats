@@ -9,10 +9,10 @@ import datetime
 from clint.textui import puts, colored
 from clint.textui import columns
 
-sys.path.append("../Trellodog")
+dir = os.path.dirname(__file__)
+sys.path.append(os.path.join(dir,"../Trellodog"))
 
-
-VERSION = "0.1"
+VERSION = "0.2.0"
 usage = """%prog [options] [command]
 Commands:
     list|ls                       List stats available
@@ -59,7 +59,7 @@ def activity(board_id):
     dawg.trello(os.environ['TRELLO_APP_KEY'], os.environ['TRELLO_API_TOKEN'])
 
     activity_filters = ['updateCard','commentCard','addChecklistToCard','updateCheckItemStateOnCard']
-    activities = dawg.activity(board_id, filters=activity_filters)
+    activities = dawg.activity(board_id, filters=activity_filters, days=options.days)
 
     card_activity = {}
     bucketed_cards = {}
@@ -161,6 +161,10 @@ if __name__ == "__main__":
     from trellodog import Trellodog
     from optparse import OptionParser
     parser = OptionParser(version=VERSION, usage=usage)
+    parser.add_option(
+            "-d", "--days", action="store", type="int",
+            default=Trellodog.default_days, dest="days", help="number of days of activity to return"
+            )
     (options, args) = parser.parse_args()
 
     if len(args) < 1:
