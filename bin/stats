@@ -96,6 +96,12 @@ def activity(board_id):
 
     for card, stuff in card_activity.iteritems():
         if len(stuff['actions']) > 0:
+
+            # Strip off protocols of URLs, as confluence can't handle them
+            stuff['card']['name'] = stuff['card']['name'].replace('https://', '')
+            stuff['card']['name'] = stuff['card']['name'].replace('http://', '')
+            stuff['card']['name'] = stuff['card']['name'].replace('.com/', '.com ')
+
             print pystache.render(data_template, stuff)
 
     # pp.pprint(card_activity)
@@ -131,7 +137,7 @@ def proc_activity(activity):
         if data.has_key('text'):
             retval = {
                   "date": date_formatter(activity['date']),
-                  "text": activity['data']['text'],
+                  "text": activity['data']['text'].encode("ascii", 'ignore'),
                   "user": activity['memberCreator']['fullName']
                 }
 
