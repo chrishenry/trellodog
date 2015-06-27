@@ -5,12 +5,14 @@ import os
 import sys
 import pystache
 import datetime
-
+from optparse import OptionParser
 from clint.textui import puts, colored
 from clint.textui import columns
 
 dir = os.path.dirname(__file__)
 sys.path.append(os.path.join(dir,"../Trellodog"))
+
+from trellodog import Trellodog
 
 VERSION = "0.2.0"
 usage = """%prog [options] [command]
@@ -162,10 +164,7 @@ if __name__ == "__main__":
         import readline
     except ImportError:
         pass
-    # import Trellodog
-    import sys
-    from trellodog import Trellodog
-    from optparse import OptionParser
+
     parser = OptionParser(version=VERSION, usage=usage)
     parser.add_option(
             "-d", "--days", action="store", type="int",
