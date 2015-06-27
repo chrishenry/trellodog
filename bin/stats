@@ -88,14 +88,6 @@ def activity(board_id):
         list_resp = dawg.get_list(card_resp['idList'])
         card_activity[card]['list'] = list_resp['name']
 
-    # # Bucket the cards by list
-    # for card, stuff in card_activity.iteritems():
-
-    #     if not bucketed_cards.has_key(stuff['list']):
-    #         bucketed_cards[stuff['list']] = {}
-
-    #     bucketed_cards[stuff['list']].append()
-
     for card, stuff in card_activity.iteritems():
         if len(stuff['actions']) > 0:
 
@@ -105,8 +97,6 @@ def activity(board_id):
             stuff['card']['name'] = stuff['card']['name'].replace('.com/', '.com ')
 
             print pystache.render(data_template, stuff)
-
-    # pp.pprint(card_activity)
 
 def proc_activity(activity):
 
