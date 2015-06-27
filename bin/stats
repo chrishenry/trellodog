@@ -5,6 +5,9 @@ import os
 import sys
 import pystache
 import datetime
+from dateutil.tz import *
+from dateutil.parser import *
+
 from optparse import OptionParser
 from clint.textui import puts, colored
 from clint.textui import columns
@@ -146,7 +149,7 @@ def proc_activity(activity):
     return retval
 
 def date_formatter(date):
-    my_date = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+    my_date = parse(date).astimezone(tzlocal())
     return my_date.strftime("%b %d, %I:%M%p").lstrip("0").replace(" 0", " ")
 
 if __name__ == "__main__":
