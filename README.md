@@ -21,6 +21,16 @@ Can be called, from the `bin` directory, like;
 ./stats activity <board id>
 
 # to copy output to clipboard (mac only)
-./stats <board id> | pbcopy
+./stats activity <board id> | pbcopy
 ```
 
+This command will convert timestamps to your current timezone. You can also
+explicit ask it to convert to a specific timezone.
+
+```bash
+./bin/stats activity h8dlORO8 -d 1 -t "America/New_York"
+./bin/stats activity h8dlORO8 -d 1 -t "America/Costa_Rica"
+./bin/stats activity h8dlORO8 -d 1 -t "America/Los_Angeles"
+```
+
+The complete list of timezone values can be found [on wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List).
