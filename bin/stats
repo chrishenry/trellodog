@@ -5,12 +5,17 @@ import os
 import sys
 import pystache
 import datetime
+from dateutil.tz import *
+from dateutil.parser import *
 
+from optparse import OptionParser
 from clint.textui import puts, colored
 from clint.textui import columns
 
 dir = os.path.dirname(__file__)
 sys.path.append(os.path.join(dir,"../Trellodog"))
+
+from trellodog import Trellodog
 
 VERSION = "0.2.0"
 usage = """%prog [options] [command]
@@ -37,7 +42,7 @@ def num_cards(board_id):
         [(colored.green(num_cards)), 4],
     ))
 
-def activity(board_id):
+def activity(board_id, options):
 
     pp = pprint.PrettyPrinter(indent=2)
 
@@ -73,7 +78,7 @@ def activity(board_id):
                 'actions': [],
             }
 
-        processed_activity = proc_activity(activity)
+        processed_activity = proc_activity(activity, options)
         if processed_activity is not None:
             card_activity[card_id]['actions'].append(processed_activity)
 
@@ -86,14 +91,6 @@ def activity(board_id):
         list_resp = dawg.get_list(card_resp['idList'])
         card_activity[card]['list'] = list_resp['name']
 
-    # # Bucket the cards by list
-    # for card, stuff in card_activity.iteritems():
-
-    #     if not bucketed_cards.has_key(stuff['list']):
-    #         bucketed_cards[stuff['list']] = {}
-
-    #     bucketed_cards[stuff['list']].append()
-
     for card, stuff in card_activity.iteritems():
         if len(stuff['actions']) > 0:
 
@@ -104,9 +101,7 @@ def activity(board_id):
 
             print pystache.render(data_template, stuff)
 
-    # pp.pprint(card_activity)
-
-def proc_activity(activity):
+def proc_activity(activity, options):
 
     #shortcut that shit.
     data = activity['data']
@@ -125,7 +120,7 @@ def proc_activity(activity):
             listAfter = data['listAfter']['name']
 
             retval = {
-                "date": date_formatter(activity['date']),
+                "date": date_formatter(activity['date'], options.tz),
                 "text": "Move task to status: **%s**" % listAfter,
                 "user": activity['memberCreator']['fullName']
             }
@@ -136,7 +131,7 @@ def proc_activity(activity):
         # Grab comments on cards
         if data.has_key('text'):
             retval = {
-                  "date": date_formatter(activity['date']),
+                  "date": date_formatter(activity['date'], options.tz),
                   "text": activity['data']['text'].encode("ascii", 'ignore'),
                   "user": activity['memberCreator']['fullName']
                 }
@@ -146,15 +141,18 @@ def proc_activity(activity):
         if data.has_key('checkItem'):
             checkItem = data['checkItem']
             retval = {
-                "date": date_formatter(activity['date']),
+                "date": date_formatter(activity['date'], options.tz),
                 "text": "%s is now **%s**" % (checkItem['name'], checkItem['state']),
                 "user": activity['memberCreator']['fullName']
             }
 
     return retval
 
-def date_formatter(date):
-    my_date = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+def date_formatter(date, tz=None):
+
+    tz = tzlocal() if tz is None else gettz(tz)
+
+    my_date = parse(date).astimezone(tz)
     return my_date.strftime("%b %d, %I:%M%p").lstrip("0").replace(" 0", " ")
 
 if __name__ == "__main__":
@@ -162,14 +160,15 @@ if __name__ == "__main__":
         import readline
     except ImportError:
         pass
-    # import Trellodog
-    import sys
-    from trellodog import Trellodog
-    from optparse import OptionParser
+
     parser = OptionParser(version=VERSION, usage=usage)
     parser.add_option(
             "-d", "--days", action="store", type="int",
-            default=Trellodog.default_days, dest="days", help="number of days of activity to return"
+            default=Trellodog.default_days, dest="days", help="Number of days of activity to return."
+            )
+    parser.add_option(
+            "-t", "--timezone", action="store", type="string",
+            default=None, dest="tz", help="Timezone to convert to."
             )
     (options, args) = parser.parse_args()
 
@@ -183,5 +182,5 @@ if __name__ == "__main__":
     elif command == "num_cards":
         num_cards(args[1])
     elif command == "activity":
-        activity(args[1])
+        activity(args[1], options)
 
